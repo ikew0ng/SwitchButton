@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <me.imid.preference.CheckBoxPreference 
+        android:title="test" 
+        android:summary="test"
+        android:enabled="false"/>
+
+    <me.imid.preference.CheckBoxPreference />
+
+    <CheckBoxPreference
+        android:defaultValue="false"
+        android:title="test" android:enabled="false"/>
+
+</PreferenceScreen>

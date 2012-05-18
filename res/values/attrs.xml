@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <declare-styleable name="Preference">
+        <attr name="title" format="string" />
+        <attr name="enabled" format="boolean"></attr>
+        <attr name="persistent" format="boolean"></attr>
+        <attr name="titleCondensed" format="string" />
+        <attr name="alphabeticShortcut" format="string" />
+        <attr name="numericShortcut" format="string" />
+        <attr name="checkable" format="boolean" />
+        <attr name="selectable" format="boolean" />
+        <attr name="orderingFromXml" format="boolean" />
+        <attr name="key" format="string" />
+        <attr name="summary" format="string" />
+        <attr name="order" format="integer" />
+        <attr name="widgetLayout" format="reference" />
+        <attr name="dependency" format="string" />
+        <attr name="defaultValue" format="reference|string|integer|boolean|float" />
+        <attr name="shouldDisableView" format="boolean" />
+        <attr name="summaryOn" format="string" />
+        <attr name="summaryOff" format="string" />
+    </declare-styleable>
+
+</resources>
