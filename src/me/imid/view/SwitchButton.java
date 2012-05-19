@@ -11,8 +11,8 @@ import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.RectF;
-import android.os.Parcel;
-import android.os.Parcelable;
+import android.os.Handler;
+import android.os.Message;
 import android.os.SystemClock;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
@@ -20,7 +20,6 @@ import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewParent;
 import android.widget.Checkable;
-import android.widget.CompoundButton;
 
 public class SwitchButton extends View implements Checkable {
 	private Paint mPaint;
@@ -56,6 +55,8 @@ public class SwitchButton extends View implements Checkable {
 
 	private OnCheckedChangeListener mOnCheckedChangeListener;
 	private OnCheckedChangeListener mOnCheckedChangeWidgetListener;
+	
+	private SetCheckedHandler setCheckedHandler = new SetCheckedHandler();
 
 	public SwitchButton(Context context) {
 		super(context);
@@ -128,6 +129,15 @@ public class SwitchButton extends View implements Checkable {
 	}
 
 	/**
+	 * 内部调用此方法设置checked状态，此方法会延迟执行各种回调函数，保证动画的流畅度
+	 * @param checked
+	 */
+	private void _setChecked(boolean checked) {
+		int msg = checked ? 1 : 0;
+		setCheckedHandler.sendEmptyMessageDelayed(msg, 10);
+	}
+
+	/**
 	 * <p>
 	 * Changes the checked state of this button.
 	 * </p>
@@ -136,9 +146,13 @@ public class SwitchButton extends View implements Checkable {
 	 *            true to check the button, false to uncheck it
 	 */
 	public void setChecked(boolean checked) {
+
 		if (mChecked != checked) {
 			mChecked = checked;
-			refreshDrawableState();
+
+			btnPos = checked ? btnOnPos : btnOffPos;
+			realPos = getRealPos(btnPos);
+			invalidate();
 
 			// Avoid infinite recursions if setChecked() is called from a
 			// listener
@@ -148,14 +162,53 @@ public class SwitchButton extends View implements Checkable {
 
 			mBroadcasting = true;
 			if (mOnCheckedChangeListener != null) {
-				mOnCheckedChangeListener.onCheckedChanged(this, mChecked);
+				mOnCheckedChangeListener.onCheckedChanged(SwitchButton.this,
+						mChecked);
 			}
 			if (mOnCheckedChangeWidgetListener != null) {
-				mOnCheckedChangeWidgetListener.onCheckedChanged(this, mChecked);
+				mOnCheckedChangeWidgetListener.onCheckedChanged(
+						SwitchButton.this, mChecked);
 			}
 
 			mBroadcasting = false;
 		}
+	}
+
+	
+
+	private class SetCheckedHandler extends Handler {
+		@Override
+		public void handleMessage(Message msg) {
+			// TODO Auto-generated method stub
+			boolean checked = msg.what == 1;
+			if (mChecked != checked) {
+				mChecked = checked;
+
+				// btnPos = checked ? btnOnPos : btnOffPos;
+				// realPos = getRealPos(btnPos);
+				// invalidate();
+
+				// Avoid infinite recursions if setChecked() is called from a
+				// listener
+				if (mBroadcasting) {
+					return;
+				}
+
+				mBroadcasting = true;
+				if (mOnCheckedChangeListener != null) {
+					mOnCheckedChangeListener.onCheckedChanged(
+							SwitchButton.this, mChecked);
+				}
+				if (mOnCheckedChangeWidgetListener != null) {
+					mOnCheckedChangeWidgetListener.onCheckedChanged(
+							SwitchButton.this, mChecked);
+				}
+
+				mBroadcasting = false;
+			}
+			super.handleMessage(msg);
+		}
+
 	}
 
 	/**
@@ -246,6 +299,19 @@ public class SwitchButton extends View implements Checkable {
 		invalidate();
 		return isEnabled();
 	}
+	
+	private final class PerformClick implements Runnable {
+		public void run() {
+			performClick();
+		}
+	}
+
+	@Override
+	public boolean performClick() {
+		// TODO Auto-generated method stub
+		btnAnimation.start(!mChecked);
+		return super.performClick();
+	}
 
 	/**
 	 * Tries to claim the user's drag motion, and requests disallowing any
@@ -279,13 +345,6 @@ public class SwitchButton extends View implements Checkable {
 						| Canvas.HAS_ALPHA_LAYER_SAVE_FLAG
 						| Canvas.FULL_COLOR_LAYER_SAVE_FLAG
 						| Canvas.CLIP_TO_LAYER_SAVE_FLAG);
-		// canvas.saveLayer(
-		// new RectF(0, offsetY, mask.getWidth(), mask.getHeight()
-		// + offsetY), mPaint, Canvas.MATRIX_SAVE_FLAG
-		// | Canvas.CLIP_SAVE_FLAG
-		// | Canvas.HAS_ALPHA_LAYER_SAVE_FLAG
-		// | Canvas.FULL_COLOR_LAYER_SAVE_FLAG
-		// | Canvas.CLIP_TO_LAYER_SAVE_FLAG);
 		// 绘制蒙板
 		canvas.drawBitmap(mask, 0, offsetY, mPaint);
 		mPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
@@ -305,19 +364,6 @@ public class SwitchButton extends View implements Checkable {
 	protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
 		// TODO Auto-generated method stub
 		setMeasuredDimension((int) maskWidth, (int) (maskHeight + 2 * offsetY));
-	}
-
-	private final class PerformClick implements Runnable {
-		public void run() {
-			performClick();
-		}
-	}
-
-	@Override
-	public boolean performClick() {
-		// TODO Auto-generated method stub
-		btnAnimation.start(!mChecked);
-		return super.performClick();
 	}
 
 	// animation
@@ -347,11 +393,11 @@ public class SwitchButton extends View implements Checkable {
 				if (mAnimationPosition <= btnOnPos) {
 					mAnimating = false;
 					mAnimationPosition = btnOnPos;
-					setChecked(true);
+					_setChecked(true);
 				} else if (mAnimationPosition >= btnOffPos) {
 					mAnimating = false;
 					mAnimationPosition = btnOffPos;
-					setChecked(false);
+					_setChecked(false);
 				} else {
 					mCurrentAnimationTime += ANIMATION_FRAME_DURATION;
 					mHandler.sendMessageAtTime(
@@ -372,65 +418,66 @@ public class SwitchButton extends View implements Checkable {
 
 	}
 
-	static class SavedState extends BaseSavedState {
-		boolean checked;
-
-		/**
-		 * Constructor called from {@link CompoundButton#onSaveInstanceState()}
-		 */
-		SavedState(Parcelable superState) {
-			super(superState);
-		}
-
-		/**
-		 * Constructor called from {@link #CREATOR}
-		 */
-		private SavedState(Parcel in) {
-			super(in);
-			checked = (Boolean) in.readValue(null);
-		}
-
-		@Override
-		public void writeToParcel(Parcel out, int flags) {
-			super.writeToParcel(out, flags);
-			out.writeValue(checked);
-		}
-
-		@Override
-		public String toString() {
-			return "CompoundButton.SavedState{"
-					+ Integer.toHexString(System.identityHashCode(this))
-					+ " checked=" + checked + "}";
-		}
-
-		public static final Parcelable.Creator<SavedState> CREATOR = new Parcelable.Creator<SavedState>() {
-			public SavedState createFromParcel(Parcel in) {
-				return new SavedState(in);
-			}
-
-			public SavedState[] newArray(int size) {
-				return new SavedState[size];
-			}
-		};
-	}
-
-	@Override
-	public Parcelable onSaveInstanceState() {
-		// Force our ancestor class to save its state
-		Parcelable superState = super.onSaveInstanceState();
-
-		SavedState ss = new SavedState(superState);
-
-		ss.checked = isChecked();
-		return ss;
-	}
-
-	@Override
-	public void onRestoreInstanceState(Parcelable state) {
-		SavedState ss = (SavedState) state;
-
-		super.onRestoreInstanceState(ss.getSuperState());
-		setChecked(ss.checked);
-		requestLayout();
-	}
+	// static class SavedState extends BaseSavedState {
+	// boolean checked;
+	//
+	// /**
+	// * Constructor called from {@link CompoundButton#onSaveInstanceState()}
+	// */
+	// SavedState(Parcelable superState) {
+	// super(superState);
+	// }
+	//
+	// /**
+	// * Constructor called from {@link #CREATOR}
+	// */
+	// private SavedState(Parcel in) {
+	// super(in);
+	// checked = (Boolean) in.readValue(null);
+	// }
+	//
+	// @Override
+	// public void writeToParcel(Parcel out, int flags) {
+	// super.writeToParcel(out, flags);
+	// out.writeValue(checked);
+	// }
+	//
+	// @Override
+	// public String toString() {
+	// return "CompoundButton.SavedState{"
+	// + Integer.toHexString(System.identityHashCode(this))
+	// + " checked=" + checked + "}";
+	// }
+	//
+	// public static final Parcelable.Creator<SavedState> CREATOR = new
+	// Parcelable.Creator<SavedState>() {
+	// public SavedState createFromParcel(Parcel in) {
+	// return new SavedState(in);
+	// }
+	//
+	// public SavedState[] newArray(int size) {
+	// return new SavedState[size];
+	// }
+	// };
+	// }
+	//
+	// @Override
+	// public Parcelable onSaveInstanceState() {
+	// // Force our ancestor class to save its state
+	// Parcelable superState = super.onSaveInstanceState();
+	//
+	// SavedState ss = new SavedState(superState);
+	//
+	// ss.checked = isChecked();
+	// return ss;
+	// }
+	//
+	// @Override
+	// public void onRestoreInstanceState(Parcelable state) {
+	// SavedState ss = (SavedState) state;
+	//
+	// super.onRestoreInstanceState(ss.getSuperState());
+	// setChecked(ss.checked);
+	// requestLayout();
+	// }
 }

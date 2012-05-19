@@ -1,129 +1,58 @@
 package me.imid.preference;
 
 import me.imid.movablecheckbox.R;
+import me.imid.view.SwitchButton;
+import me.imid.view.SwitchButton.OnCheckedChangeListener;
+import android.app.Service;
 import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.res.TypedArray;
-import android.graphics.drawable.Drawable;
-import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
-import android.widget.ImageView;
+import android.view.accessibility.AccessibilityEvent;
+import android.view.accessibility.AccessibilityManager;
+import android.widget.Checkable;
 import android.widget.TextView;
 
-public class CheckBoxPreference extends Preference {
+public class CheckBoxPreference extends android.preference.CheckBoxPreference {
 	private Context mContext;
 	private int mLayoutResId = R.layout.preference;
 	private int mWidgetLayoutResId = R.layout.preference_widget_checkbox;
+	private int minHeight;
+	private int dimenHeightattr = android.R.attr.listPreferredItemHeight;
 
-	private int mOrder = DEFAULT_ORDER;
-	private CharSequence mTitle;
-	private CharSequence mSummary;
-	private String mKey;
-	private Intent mIntent;
-	private boolean mEnabled = true;
-	private boolean mSelectable = true;
-	private boolean mRequiresKey;
-	private boolean mPersistent = true;
-	private String mDependencyKey;
-	private Object mDefaultValue;
-	private boolean mDependencyMet = true;
 	private boolean mShouldDisableView = true;
 
 	private CharSequence mSummaryOn;
 	private CharSequence mSummaryOff;
 
-	private boolean mChecked;
+	private boolean mSendAccessibilityEventViewClickedType;
+
+	private AccessibilityManager mAccessibilityManager;
 
 	public CheckBoxPreference(Context context) {
 		super(context);
 	}
 
-	public CheckBoxPreference(Context context, AttributeSet attrs) {
-		super(context, attrs);
+	public CheckBoxPreference(Context context, AttributeSet attrset) {
+		super(context, attrset);
 		mContext = context;
-
-		TypedArray a = context.obtainStyledAttributes(attrs,
-				R.styleable.Preference);
-		for (int i = a.getIndexCount(); i >= 0; i--) {
-			int attr = a.getIndex(i);
-			switch (attr) {
-			case R.styleable.Preference_key:
-				mKey = a.getString(attr);
-				break;
-
-			case R.styleable.Preference_title:
-				mTitle = a.getString(attr);
-				break;
-
-			case R.styleable.Preference_summary:
-				mSummary = a.getString(attr);
-				break;
-
-			case R.styleable.Preference_order:
-				mOrder = a.getInt(attr, mOrder);
-				break;
-
-			case R.styleable.Preference_widgetLayout:
-				mWidgetLayoutResId = a.getResourceId(attr, mWidgetLayoutResId);
-				break;
-
-			case R.styleable.Preference_enabled:
-				mEnabled = a.getBoolean(attr, true);
-				break;
-
-			case R.styleable.Preference_selectable:
-				mSelectable = a.getBoolean(attr, true);
-				break;
-
-			case R.styleable.Preference_persistent:
-				mPersistent = a.getBoolean(attr, mPersistent);
-				break;
-
-			case R.styleable.Preference_dependency:
-				mDependencyKey = a.getString(attr);
-				break;
-
-			case R.styleable.Preference_defaultValue:
-				mDefaultValue = onGetDefaultValue(a, attr);
-				break;
-
-			case R.styleable.Preference_shouldDisableView:
-				mShouldDisableView = a.getBoolean(attr, mShouldDisableView);
-				break;
-			}
-		}
-		a.recycle();
-
-	}
-
-	/**
-	 * Sets the checked state and saves it to the {@link SharedPreferences}.
-	 * 
-	 * @param checked
-	 *            The checked state.
-	 */
-	public void setChecked(boolean checked) {
-		if (mChecked != checked) {
-			mChecked = checked;
-			persistBoolean(checked);
-			notifyDependencyChange(shouldDisableDependents());
-			notifyChanged();
-		}
-	}
-
-	/**
-	 * Returns the checked state.
-	 * 
-	 * @return The checked state.
-	 */
-	public boolean isChecked() {
-		return mChecked;
+		mSummaryOn = getSummaryOn();
+		mSummaryOff = getSummaryOff();
+		mAccessibilityManager = (AccessibilityManager) mContext
+				.getSystemService(Service.ACCESSIBILITY_SERVICE);
+		dimenHeightattr = android.os.Build.MANUFACTURER.toLowerCase().contains(
+				"meizu") ? android.R.attr.listPreferredItemHeightMz
+				: android.R.attr.listPreferredItemHeight;
+		
+		TypedArray typedArray =context.obtainStyledAttributes(new int[]{dimenHeightattr});
+		minHeight = (int) typedArray.getDimension(0, 100);
+		typedArray.recycle();
 	}
 
 	/**
@@ -174,13 +103,21 @@ public class CheckBoxPreference extends Preference {
 					.findViewById(R.id.widget_frame);
 			layoutInflater.inflate(mWidgetLayoutResId, widgetFrame);
 		}
-
+		layout.setMinimumHeight(minHeight);
 		return layout;
 	}
 
 	@Override
 	protected void onBindView(View view) {
-		// TODO Auto-generated method stub
+		// 屏蔽item点击事件
+		view.setOnTouchListener(new OnTouchListener() {
+
+			public boolean onTouch(View v, MotionEvent event) {
+				// TODO Auto-generated method stub
+				return true;
+			}
+		});
+
 		TextView textView = (TextView) view.findViewById(R.id.title);
 		if (textView != null) {
 			textView.setText(getTitle());
@@ -201,20 +138,72 @@ public class CheckBoxPreference extends Preference {
 				}
 			}
 		}
-		
-		ImageView imageView = (ImageView)view.findViewById(R.id.icon);
-		Drawable icon = getLeftIcon();
-		if (icon!=null) {
-			if(imageView.getVisibility()!=View.VISIBLE)
-				imageView.setVisibility(View.VISIBLE);
-			imageView.setImageDrawable(icon);
-		}else {
-			if(imageView.getVisibility()!=View.GONE)
-				imageView.setVisibility(View.GONE);
-		}
-		
+
 		if (mShouldDisableView) {
 			setEnabledStateOnViews(view, isEnabled());
+		}
+
+		View checkboxView = view.findViewById(R.id.checkbox);
+		if (checkboxView != null && checkboxView instanceof Checkable) {
+			((Checkable) checkboxView).setChecked(isChecked());
+			SwitchButton switchButton = (SwitchButton) checkboxView;
+			switchButton
+					.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+
+						public void onCheckedChanged(SwitchButton buttonView,
+								boolean isChecked) {
+							// TODO Auto-generated method stub
+							mSendAccessibilityEventViewClickedType = true;
+							if (!callChangeListener(isChecked)) {
+								return;
+							}
+							setChecked(isChecked);
+						}
+					});
+			// send an event to announce the value change of the CheckBox and is
+			// done here
+			// because clicking a preference does not immediately change the
+			// checked state
+			// for example when enabling the WiFi
+			if (mSendAccessibilityEventViewClickedType
+					&& mAccessibilityManager.isEnabled()
+					&& checkboxView.isEnabled()) {
+				mSendAccessibilityEventViewClickedType = false;
+
+				int eventType = AccessibilityEvent.TYPE_VIEW_CLICKED;
+				checkboxView.sendAccessibilityEventUnchecked(AccessibilityEvent
+						.obtain(eventType));
+			}
+		}
+
+		// Sync the summary view
+		TextView summaryView = (TextView) view.findViewById(R.id.summary);
+		if (summaryView != null) {
+			boolean useDefaultSummary = true;
+			if (isChecked() && mSummaryOn != null) {
+				summaryView.setText(mSummaryOn);
+				useDefaultSummary = false;
+			} else if (!isChecked() && mSummaryOff != null) {
+				summaryView.setText(mSummaryOff);
+				useDefaultSummary = false;
+			}
+
+			if (useDefaultSummary) {
+				final CharSequence summary = getSummary();
+				if (summary != null) {
+					summaryView.setText(summary);
+					useDefaultSummary = false;
+				}
+			}
+
+			int newVisibility = View.GONE;
+			if (!useDefaultSummary) {
+				// Someone has written to it
+				newVisibility = View.VISIBLE;
+			}
+			if (newVisibility != summaryView.getVisibility()) {
+				summaryView.setVisibility(newVisibility);
+			}
 		}
 	}
 

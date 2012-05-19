@@ -3,13 +3,7 @@
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
     android:gravity="center_vertical"
-    android:minHeight="?android:attr/listPreferredItemHeightMz" >
-
-    <ImageView
-        android:id="@+id/icon"
-        android:layout_width="@dimen/preference_icon_width"
-        android:layout_height="@dimen/list_item_height"
-        android:scaleType="centerInside" />
+    >
 
     <RelativeLayout
         android:id="@+id/primary"
@@ -39,8 +33,12 @@
             android:textAppearance="?android:attr/textAppearanceSmall" />
     </RelativeLayout>
 
-    <LinearLayout android:gravity="center"
-		android:orientation="vertical" android:id="@+id/widget_frame"
-		android:layout_width="wrap_content" android:layout_height="fill_parent"
-		android:layout_marginRight="@dimen/preference_margin" />
+    <LinearLayout
+        android:id="@+id/widget_frame"
+        android:layout_width="wrap_content"
+        android:layout_height="fill_parent"
+        android:layout_marginRight="@dimen/preference_margin"
+        android:gravity="center"
+        android:orientation="vertical" />
+
 </LinearLayout>

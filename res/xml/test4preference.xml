@@ -1,15 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
 
-    <me.imid.preference.CheckBoxPreference 
-        android:title="test" 
-        android:summary="test"
-        android:enabled="false"/>
-
-    <me.imid.preference.CheckBoxPreference />
+    <me.imid.preference.CheckBoxPreference
+        android:defaultValue="true"
+        android:enabled="false"
+        android:summary="summary"
+        android:title="MyCheckbox(disabled)" />
+    <me.imid.preference.CheckBoxPreference
+        android:defaultValue="true"
+        android:dependency="checkbox"
+        android:summaryOff="off"
+        android:summaryOn="on"
+        android:title="MyCheckbox(enabled)" />
+    <me.imid.preference.CheckBoxPreference
+        android:defaultValue="false"
+        android:key="checkbox"
+        android:summaryOff="off"
+        android:summaryOn="on"
+        android:title="MyCheckbox(enabled)" />
 
     <CheckBoxPreference
+        android:defaultValue="true"
+        android:enabled="false"
+        android:summaryOff="off"
+        android:summaryOn="on"
+        android:title="defalt checkbox(disabled)" />
+    <CheckBoxPreference
+        android:defaultValue="true"
+        android:dependency="checkbox1"
+        android:summaryOff="off"
+        android:summaryOn="on"
+        android:title="defalt checkbox(enabled)" />
+    <CheckBoxPreference
         android:defaultValue="false"
-        android:title="test" android:enabled="false"/>
+        android:key="checkbox1"
+        android:summaryOff="off"
+        android:summaryOn="on"
+        android:title="defalt checkbox(enabled)" />
 
 </PreferenceScreen>
