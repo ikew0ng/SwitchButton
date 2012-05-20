@@ -9,6 +9,7 @@ import android.content.res.TypedArray;
 import android.preference.PreferenceActivity;
 import android.text.TextUtils;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -24,7 +25,7 @@ public class CheckBoxPreference extends android.preference.CheckBoxPreference {
 	private int mLayoutResId = R.layout.preference;
 	private int mWidgetLayoutResId = R.layout.preference_widget_checkbox;
 	private int minHeight;
-	private int dimenHeightattr = android.R.attr.listPreferredItemHeight;
+	private int dimenHeightAttr = android.R.attr.listPreferredItemHeight;
 
 	private boolean mShouldDisableView = true;
 
@@ -46,36 +47,13 @@ public class CheckBoxPreference extends android.preference.CheckBoxPreference {
 		mSummaryOff = getSummaryOff();
 		mAccessibilityManager = (AccessibilityManager) mContext
 				.getSystemService(Service.ACCESSIBILITY_SERVICE);
-		dimenHeightattr = android.os.Build.MANUFACTURER.toLowerCase().contains(
+		dimenHeightAttr = android.os.Build.MANUFACTURER.toLowerCase().contains(
 				"meizu") ? android.R.attr.listPreferredItemHeightMz
 				: android.R.attr.listPreferredItemHeight;
 		
-		TypedArray typedArray =context.obtainStyledAttributes(new int[]{dimenHeightattr});
+		TypedArray typedArray =context.obtainStyledAttributes(new int[]{dimenHeightAttr});
 		minHeight = (int) typedArray.getDimension(0, 100);
 		typedArray.recycle();
-	}
-
-	/**
-	 * Gets the View that will be shown in the {@link PreferenceActivity}.
-	 * 
-	 * @param convertView
-	 *            The old View to reuse, if possible. Note: You should check
-	 *            that this View is non-null and of an appropriate type before
-	 *            using. If it is not possible to convert this View to display
-	 *            the correct data, this method can create a new View.
-	 * @param parent
-	 *            The parent that this View will eventually be attached to.
-	 * @return Returns the same Preference object, for chaining multiple calls
-	 *         into a single statement.
-	 * @see #onCreateView(ViewGroup)
-	 * @see #onBindView(View)
-	 */
-	public View getView(View convertView, ViewGroup parent) {
-		if (convertView == null) {
-			convertView = onCreateView(parent);
-		}
-		onBindView(convertView);
-		return convertView;
 	}
 
 	/**
