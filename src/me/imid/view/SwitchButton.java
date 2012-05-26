@@ -16,12 +16,11 @@ import android.os.Message;
 import android.os.SystemClock;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
-import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewParent;
-import android.widget.Checkable;
+import android.widget.CheckBox;
 
-public class SwitchButton extends View implements Checkable {
+public class SwitchButton extends CheckBox {
 	private Paint mPaint;
 	private ViewParent mParent;
 	private Bitmap bottom;
@@ -55,7 +54,7 @@ public class SwitchButton extends View implements Checkable {
 
 	private OnCheckedChangeListener mOnCheckedChangeListener;
 	private OnCheckedChangeListener mOnCheckedChangeWidgetListener;
-	
+
 	private SetCheckedHandler setCheckedHandler = new SetCheckedHandler();
 
 	public SwitchButton(Context context) {
@@ -130,6 +129,7 @@ public class SwitchButton extends View implements Checkable {
 
 	/**
 	 * 内部调用此方法设置checked状态，此方法会延迟执行各种回调函数，保证动画的流畅度
+	 * 
 	 * @param checked
 	 */
 	private void _setChecked(boolean checked) {
@@ -174,8 +174,6 @@ public class SwitchButton extends View implements Checkable {
 		}
 	}
 
-	
-
 	private class SetCheckedHandler extends Handler {
 		@Override
 		public void handleMessage(Message msg) {
@@ -183,10 +181,6 @@ public class SwitchButton extends View implements Checkable {
 			boolean checked = msg.what == 1;
 			if (mChecked != checked) {
 				mChecked = checked;
-
-				// btnPos = checked ? btnOnPos : btnOffPos;
-				// realPos = getRealPos(btnPos);
-				// invalidate();
 
 				// Avoid infinite recursions if setChecked() is called from a
 				// listener
@@ -232,22 +226,6 @@ public class SwitchButton extends View implements Checkable {
 	 */
 	void setOnCheckedChangeWidgetListener(OnCheckedChangeListener listener) {
 		mOnCheckedChangeWidgetListener = listener;
-	}
-
-	/**
-	 * Interface definition for a callback to be invoked when the checked state
-	 * of a compound button changed.
-	 */
-	public static interface OnCheckedChangeListener {
-		/**
-		 * Called when the checked state of a compound button has changed.
-		 * 
-		 * @param buttonView
-		 *            The compound button view whose state has changed.
-		 * @param isChecked
-		 *            The new checked state of buttonView.
-		 */
-		void onCheckedChanged(SwitchButton buttonView, boolean isChecked);
 	}
 
 	@Override
@@ -299,7 +277,7 @@ public class SwitchButton extends View implements Checkable {
 		invalidate();
 		return isEnabled();
 	}
-	
+
 	private final class PerformClick implements Runnable {
 		public void run() {
 			performClick();
@@ -310,7 +288,7 @@ public class SwitchButton extends View implements Checkable {
 	public boolean performClick() {
 		// TODO Auto-generated method stub
 		btnAnimation.start(!mChecked);
-		return super.performClick();
+		return true;
 	}
 
 	/**
@@ -337,7 +315,6 @@ public class SwitchButton extends View implements Checkable {
 	@Override
 	protected void onDraw(Canvas canvas) {
 		// TODO Auto-generated method stub
-		super.onDraw(canvas);
 		canvas.saveLayerAlpha(
 				new RectF(0, offsetY, mask.getWidth(), mask.getHeight()
 						+ offsetY), mAlpha, Canvas.MATRIX_SAVE_FLAG
@@ -417,67 +394,4 @@ public class SwitchButton extends View implements Checkable {
 		}
 
 	}
-
-	// static class SavedState extends BaseSavedState {
-	// boolean checked;
-	//
-	// /**
-	// * Constructor called from {@link CompoundButton#onSaveInstanceState()}
-	// */
-	// SavedState(Parcelable superState) {
-	// super(superState);
-	// }
-	//
-	// /**
-	// * Constructor called from {@link #CREATOR}
-	// */
-	// private SavedState(Parcel in) {
-	// super(in);
-	// checked = (Boolean) in.readValue(null);
-	// }
-	//
-	// @Override
-	// public void writeToParcel(Parcel out, int flags) {
-	// super.writeToParcel(out, flags);
-	// out.writeValue(checked);
-	// }
-	//
-	// @Override
-	// public String toString() {
-	// return "CompoundButton.SavedState{"
-	// + Integer.toHexString(System.identityHashCode(this))
-	// + " checked=" + checked + "}";
-	// }
-	//
-	// public static final Parcelable.Creator<SavedState> CREATOR = new
-	// Parcelable.Creator<SavedState>() {
-	// public SavedState createFromParcel(Parcel in) {
-	// return new SavedState(in);
-	// }
-	//
-	// public SavedState[] newArray(int size) {
-	// return new SavedState[size];
-	// }
-	// };
-	// }
-	//
-	// @Override
-	// public Parcelable onSaveInstanceState() {
-	// // Force our ancestor class to save its state
-	// Parcelable superState = super.onSaveInstanceState();
-	//
-	// SavedState ss = new SavedState(superState);
-	//
-	// ss.checked = isChecked();
-	// return ss;
-	// }
-	//
-	// @Override
-	// public void onRestoreInstanceState(Parcelable state) {
-	// SavedState ss = (SavedState) state;
-	//
-	// super.onRestoreInstanceState(ss.getSuperState());
-	// setChecked(ss.checked);
-	// requestLayout();
-	// }
 }

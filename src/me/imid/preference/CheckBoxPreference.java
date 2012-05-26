@@ -2,30 +2,25 @@ package me.imid.preference;
 
 import me.imid.movablecheckbox.R;
 import me.imid.view.SwitchButton;
-import me.imid.view.SwitchButton.OnCheckedChangeListener;
 import android.app.Service;
 import android.content.Context;
-import android.content.res.TypedArray;
 import android.preference.PreferenceActivity;
 import android.text.TextUtils;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
-import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityManager;
 import android.widget.Checkable;
+import android.widget.CompoundButton;
+import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.TextView;
 
 public class CheckBoxPreference extends android.preference.CheckBoxPreference {
 	private Context mContext;
 	private int mLayoutResId = R.layout.preference;
 	private int mWidgetLayoutResId = R.layout.preference_widget_checkbox;
-	private int minHeight;
-	private int dimenHeightAttr = android.R.attr.listPreferredItemHeight;
 
 	private boolean mShouldDisableView = true;
 
@@ -36,24 +31,22 @@ public class CheckBoxPreference extends android.preference.CheckBoxPreference {
 
 	private AccessibilityManager mAccessibilityManager;
 
-	public CheckBoxPreference(Context context) {
-		super(context);
-	}
-
-	public CheckBoxPreference(Context context, AttributeSet attrset) {
+	public CheckBoxPreference(Context context, AttributeSet attrset,
+			int defStyle) {
 		super(context, attrset);
 		mContext = context;
 		mSummaryOn = getSummaryOn();
 		mSummaryOff = getSummaryOff();
 		mAccessibilityManager = (AccessibilityManager) mContext
 				.getSystemService(Service.ACCESSIBILITY_SERVICE);
-		dimenHeightAttr = android.os.Build.MANUFACTURER.toLowerCase().contains(
-				"meizu") ? android.R.attr.listPreferredItemHeightMz
-				: android.R.attr.listPreferredItemHeight;
-		
-		TypedArray typedArray =context.obtainStyledAttributes(new int[]{dimenHeightAttr});
-		minHeight = (int) typedArray.getDimension(0, 100);
-		typedArray.recycle();
+	}
+
+	public CheckBoxPreference(Context context, AttributeSet attrs) {
+		this(context, attrs, android.R.attr.checkBoxPreferenceStyle);
+	}
+
+	public CheckBoxPreference(Context context) {
+		this(context, null);
 	}
 
 	/**
@@ -81,20 +74,13 @@ public class CheckBoxPreference extends android.preference.CheckBoxPreference {
 					.findViewById(R.id.widget_frame);
 			layoutInflater.inflate(mWidgetLayoutResId, widgetFrame);
 		}
-		layout.setMinimumHeight(minHeight);
 		return layout;
 	}
 
 	@Override
 	protected void onBindView(View view) {
 		// 屏蔽item点击事件
-		view.setOnTouchListener(new OnTouchListener() {
-
-			public boolean onTouch(View v, MotionEvent event) {
-				// TODO Auto-generated method stub
-				return true;
-			}
-		});
+		view.setClickable(false);
 
 		TextView textView = (TextView) view.findViewById(R.id.title);
 		if (textView != null) {
@@ -128,7 +114,7 @@ public class CheckBoxPreference extends android.preference.CheckBoxPreference {
 			switchButton
 					.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 
-						public void onCheckedChanged(SwitchButton buttonView,
+						public void onCheckedChanged(CompoundButton buttonView,
 								boolean isChecked) {
 							// TODO Auto-generated method stub
 							mSendAccessibilityEventViewClickedType = true;
