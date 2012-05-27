@@ -9,7 +9,7 @@
         android:layout_height="wrap_content"
         android:text="@string/hello" />
 
-    <me.imid.movablecheckbox.view.MovableCheckbox
+    <me.imid.view.SwitchButton
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
 

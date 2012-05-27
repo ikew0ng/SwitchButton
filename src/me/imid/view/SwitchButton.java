@@ -1,6 +1,6 @@
 package me.imid.view;
 
-import me.imid.movablecheckbox.R;
+import me.imid.R;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -44,7 +44,7 @@ public class SwitchButton extends CheckBox {
 
 	private int mClickTimeout;
 	private int mTouchSlop;
-	private int mAlpha;
+	private int mAlpha = 255;
 
 	private boolean mChecked = false;
 	private boolean mBroadcasting;
@@ -57,14 +57,16 @@ public class SwitchButton extends CheckBox {
 
 	private SetCheckedHandler setCheckedHandler = new SetCheckedHandler();
 
-	public SwitchButton(Context context) {
-		super(context);
-		initView(context);
+	public SwitchButton(Context context, AttributeSet attrs) {
+		this(context, attrs, android.R.attr.checkboxStyle);
 	}
 
-	public SwitchButton(Context context, AttributeSet attrs) {
-		super(context, attrs);
-		// TODO Auto-generated constructor stub
+	public SwitchButton(Context context) {
+		this(context, null);
+	}
+
+	public SwitchButton(Context context, AttributeSet attrs, int defStyle) {
+		super(context, attrs, defStyle);
 		initView(context);
 	}
 
@@ -73,8 +75,6 @@ public class SwitchButton extends CheckBox {
 		mPaint.setColor(Color.WHITE);
 		Resources resources = context.getResources();
 
-		ViewConfiguration.get(context);
-		ViewConfiguration.get(context);
 		// get viewConfiguration
 		mClickTimeout = ViewConfiguration.getPressedStateDuration()
 				+ ViewConfiguration.getTapTimeout();

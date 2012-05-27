@@ -1,6 +1,6 @@
 package me.imid.preference;
 
-import me.imid.movablecheckbox.R;
+import me.imid.R;
 import me.imid.view.SwitchButton;
 import android.app.Service;
 import android.content.Context;
